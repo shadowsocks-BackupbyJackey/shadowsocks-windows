@@ -551,9 +551,13 @@ namespace Shadowsocks.Controller
                 if (e is SocketException)
                 {
                     SocketException se = (SocketException)e;
-                    if (se.SocketErrorCode == SocketError.AccessDenied)
+                    if (se.SocketErrorCode == SocketError.AddressAlreadyInUse)
                     {
-                        e = new Exception(I18N.GetString("Port already in use"), e);
+                        e = new Exception(I18N.GetString("Port {0} already in use", _config.localPort), e);
+                    }
+                    else if (se.SocketErrorCode == SocketError.AccessDenied)
+                    {
+                        e = new Exception(I18N.GetString("Port {0} is reserved by system", _config.localPort), e);
                     }
                 }
                 Logging.LogUsefulException(e);
@@ -614,6 +618,7 @@ namespace Shadowsocks.Controller
             {
                 GFWListUpdater.MergeAndWritePACFile(FileManager.NonExclusiveReadAllText(Utils.GetTempPath("gfwlist.txt")));
             }
+            UpdateSystemProxy();
         }
 
         public void CopyPacUrl()
